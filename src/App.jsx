@@ -5,6 +5,7 @@ function App() {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState("");
   const [newPriority, setNewPriority] = useState("medium");
+  const [newDueDate, setNewDueDate] = useState("");
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
@@ -29,9 +30,11 @@ function App() {
         text: newTask,
         completed: false,
         priority: newPriority,
+        dueDate: newDueDate,
       },
     ]);
     setNewTask("");
+    setNewDueDate("");
   };
 
   const toggleTask = (taskId) => {
@@ -54,6 +57,19 @@ function App() {
     );
   };
 
+  const changeDueDate = (taskId, newDueDate) => {
+    setTasks(
+      tasks.map((task) =>
+        task.id === taskId ? { ...task, dueDate: newDueDate } : task
+      )
+    );
+  };
+
+  const isOverdue = (dueDate) => {
+    if (!dueDate) return false;
+    return new Date(dueDate) < new Date().setHours(0, 0, 0, 0);
+  };
+
   const filteredTasks = tasks
     .filter((task) => {
       if (filter === "active") return !task.completed;
@@ -61,8 +77,18 @@ function App() {
       return true;
     })
     .sort((a, b) => {
+      // First sort by priority
       const priorityOrder = { high: 0, medium: 1, low: 2 };
-      return priorityOrder[a.priority] - priorityOrder[b.priority];
+      const priorityDiff =
+        priorityOrder[a.priority] - priorityOrder[b.priority];
+
+      if (priorityDiff !== 0) return priorityDiff;
+
+      // Then sort by due date
+      if (!a.dueDate && !b.dueDate) return 0;
+      if (!a.dueDate) return 1;
+      if (!b.dueDate) return -1;
+      return new Date(a.dueDate) - new Date(b.dueDate);
     });
 
   return (
@@ -86,6 +112,12 @@ function App() {
           <option value="medium">Medium Priority</option>
           <option value="low">Low Priority</option>
         </select>
+        <input
+          type="date"
+          value={newDueDate}
+          onChange={(e) => setNewDueDate(e.target.value)}
+          className="date-input"
+        />
         <button type="submit" className="add-button">
           Add Task
         </button>
@@ -118,14 +150,23 @@ function App() {
             key={task.id}
             className={`task-item ${
               task.completed ? "completed" : ""
-            } priority-${task.priority}`}
+            } priority-${task.priority} ${
+              isOverdue(task.dueDate) ? "overdue" : ""
+            }`}
           >
             <input
               type="checkbox"
               checked={task.completed}
               onChange={() => toggleTask(task.id)}
             />
-            <span>{task.text}</span>
+            <div className="task-content">
+              <span>{task.text}</span>
+              {task.dueDate && (
+                <span className="due-date">
+                  Due: {new Date(task.dueDate).toLocaleDateString()}
+                </span>
+              )}
+            </div>
             <select
               value={task.priority}
               onChange={(e) => changePriority(task.id, e.target.value)}
@@ -135,6 +176,12 @@ function App() {
               <option value="medium">Medium</option>
               <option value="low">Low</option>
             </select>
+            <input
+              type="date"
+              value={task.dueDate || ""}
+              onChange={(e) => changeDueDate(task.id, e.target.value)}
+              className="date-input"
+            />
             <button
               onClick={() => deleteTask(task.id)}
               className="delete-button"
