@@ -3,6 +3,9 @@
   --background-color: #242424;
   --text-color: rgba(255, 255, 255, 0.87);
   --border-color: #3f3f3f;
+  --priority-high: #ff4444;
+  --priority-medium: #ffaa00;
+  --priority-low: #00aa00;
 }
 
 #root {
@@ -155,4 +158,26 @@
 
 .read-the-docs {
   color: #888;
+}
+
+.priority-select {
+  padding: 0.8rem;
+  border-radius: 8px;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.task-item.priority-high {
+  border-left: 4px solid var(--priority-high);
+}
+
+.task-item.priority-medium {
+  border-left: 4px solid var(--priority-medium);
+}
+
+.task-item.priority-low {
+  border-left: 4px solid var(--priority-low);
 }

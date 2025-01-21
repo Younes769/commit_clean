@@ -4,6 +4,7 @@ import "./App.css";
 function App() {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState("");
+  const [newPriority, setNewPriority] = useState("medium");
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
@@ -27,6 +28,7 @@ function App() {
         id: Date.now(),
         text: newTask,
         completed: false,
+        priority: newPriority,
       },
     ]);
     setNewTask("");
@@ -44,11 +46,24 @@ function App() {
     setTasks(tasks.filter((task) => task.id !== taskId));
   };
 
-  const filteredTasks = tasks.filter((task) => {
-    if (filter === "active") return !task.completed;
-    if (filter === "completed") return task.completed;
-    return true;
-  });
+  const changePriority = (taskId, newPriority) => {
+    setTasks(
+      tasks.map((task) =>
+        task.id === taskId ? { ...task, priority: newPriority } : task
+      )
+    );
+  };
+
+  const filteredTasks = tasks
+    .filter((task) => {
+      if (filter === "active") return !task.completed;
+      if (filter === "completed") return task.completed;
+      return true;
+    })
+    .sort((a, b) => {
+      const priorityOrder = { high: 0, medium: 1, low: 2 };
+      return priorityOrder[a.priority] - priorityOrder[b.priority];
+    });
 
   return (
     <div className="app-container">
@@ -62,6 +77,15 @@ function App() {
           placeholder="Add a new task..."
           className="task-input"
         />
+        <select
+          value={newPriority}
+          onChange={(e) => setNewPriority(e.target.value)}
+          className="priority-select"
+        >
+          <option value="high">High Priority</option>
+          <option value="medium">Medium Priority</option>
+          <option value="low">Low Priority</option>
+        </select>
         <button type="submit" className="add-button">
           Add Task
         </button>
@@ -92,7 +116,9 @@ function App() {
         {filteredTasks.map((task) => (
           <li
             key={task.id}
-            className={`task-item ${task.completed ? "completed" : ""}`}
+            className={`task-item ${
+              task.completed ? "completed" : ""
+            } priority-${task.priority}`}
           >
             <input
               type="checkbox"
@@ -100,6 +126,15 @@ function App() {
               onChange={() => toggleTask(task.id)}
             />
             <span>{task.text}</span>
+            <select
+              value={task.priority}
+              onChange={(e) => changePriority(task.id, e.target.value)}
+              className="priority-select"
+            >
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
             <button
               onClick={() => deleteTask(task.id)}
               className="delete-button"
